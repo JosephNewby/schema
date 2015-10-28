@@ -35,7 +35,7 @@ from nltk.corpus import wordnet as wn
 
 
     Required modules:
-    
+
       * nltk with wordnet download (see http://www.nltk.org/data.html)
       * Levenshtein
       * pyxdameraulevenshtein
@@ -62,8 +62,9 @@ from nltk.corpus import wordnet as wn
 
     """
 
+
 # -----------------------------------------------------------------------------
-# Utility functions                                                            
+# Utility functions
 # -----------------------------------------------------------------------------
 
 def _split_composite(w):
@@ -71,6 +72,7 @@ def _split_composite(w):
     a split term set W. '''
     m = re.split(', | & | and ', w)
     return set([s.lower() for s in m])
+
 
 def _longest_common_substring(wa, wb):
     ''' Which computes the length of the longest common sequence of consecutive
@@ -89,7 +91,8 @@ def _longest_common_substring(wa, wb):
             else:
                 m[x][y] = 0
     lcs = s1[x_longest - longest: x_longest]
-    return len(lcs)/len(s1)
+    return len(lcs) / len(s1)
+
 
 def _contains_as_separate_component(wa, wb):
     ''' Indicates whether string wa contains string wb as separate part (middle
@@ -98,8 +101,9 @@ def _contains_as_separate_component(wa, wb):
         return True
     return False
 
+
 # -----------------------------------------------------------------------------
-# Find Source Category's Extended Split Term Set                               
+# Find Source Category's Extended Split Term Set
 # -----------------------------------------------------------------------------
 
 class ExtendedSplitTermSet(object):
@@ -113,37 +117,37 @@ class ExtendedSplitTermSet(object):
 
     def split_terms(self):
         ''' Returns the extended split term set. '''
-        Wcategory=_split_composite(self.wcategory)
-        Wparent=_split_composite(self.wparent) if self.wparent else set()
-        Wchild=set()
+        Wcategory = _split_composite(self.wcategory)
+        Wparent = _split_composite(self.wparent) if self.wparent else set()
+        Wchild = set()
         for w in self.Wchildren:
-            Wchild=Wchild | _split_composite(w)
-        Wcontext=Wchild | Wparent
-        extendedSplitTermSet=set()
+            Wchild = Wchild | _split_composite(w)
+        Wcontext = Wchild | Wparent
+        extendedSplitTermSet = set()
         for wsrcSplit in Wcategory:
-            extendedTermSet=self.disambiguate(wsrcSplit, Wcontext)
+            extendedTermSet = self.disambiguate(wsrcSplit, Wcontext)
             if extendedTermSet:
-                extendedTermSet=set([l.name() for l in extendedTermSet.lemmas()])
-                extendedTermSet=extendedTermSet | set([wsrcSplit])
-                extendedSplitTermSet=extendedSplitTermSet | extendedTermSet
+                extendedTermSet = set([l.name() for l in extendedTermSet.lemmas()])
+                extendedTermSet = extendedTermSet | set([wsrcSplit])
+                extendedSplitTermSet = extendedSplitTermSet | extendedTermSet
         return extendedSplitTermSet
 
     def disambiguate(self, w, Wcontext):
         ''' Disambiguates a word using a set of context words, resulting in a set of
         correct synonyms. '''
-        z=self.get_synsets(w)
-        bestscore=0
-        bestsynset=None
+        z = self.get_synsets(w)
+        bestscore = 0
+        bestsynset = None
         for s in z:
-            sensescore=0
-            r=set(self.get_related(s))
-            p=itertools.product(r, Wcontext)
+            sensescore = 0
+            r = set(self.get_related(s))
+            p = itertools.product(r, Wcontext)
             for (sr, w) in p:
-                gloss=self.get_gloss(sr)
-                sensescore+=_longest_common_substring(gloss, w)
-            if sensescore>bestscore:
-                bestscore=sensescore
-                bestsynset=s
+                gloss = self.get_gloss(sr)
+                sensescore += _longest_common_substring(gloss, w)
+            if sensescore > bestscore:
+                bestscore = sensescore
+                bestsynset = s
         return bestsynset
 
     def get_synsets(self, w):
@@ -155,7 +159,7 @@ class ExtendedSplitTermSet(object):
         ''' Gives synonym sets directly related to synset S in WordNet, based on
         hypernymy, hyponymy, meronymy and holonymy. Result includes synset S as well.
         '''
-        related=[S]
+        related = [S]
         related.extend(S.hypernyms())
         related.extend(S.hyponyms())
         related.extend(S.part_meronyms())
@@ -166,8 +170,9 @@ class ExtendedSplitTermSet(object):
         ''' Returns the gloss associated to a synset S in WordNet. '''
         return S.definition()
 
+
 # -----------------------------------------------------------------------------
-# Semantic Match                                                               
+# Semantic Match
 # -----------------------------------------------------------------------------
 
 class SemanticMatcher(object):
@@ -182,7 +187,7 @@ class SemanticMatcher(object):
             return False
         for SsrcSplit in E:
             matchFound = False
-            p=itertools.product([SsrcSplit], Wtarget)
+            p = itertools.product([SsrcSplit], Wtarget)
             for (wsrcSplitSyn, wtargetSplit) in p:
                 edit_dist = Levenshtein.distance(unicode(wsrcSplitSyn), unicode(wtargetSplit))
                 similarity = 1 - edit_dist / max(len(wsrcSplitSyn), len(wtargetSplit))
@@ -196,7 +201,7 @@ class SemanticMatcher(object):
 
 
 # -----------------------------------------------------------------------------
-# Candidate Target Path Key Comparison                                         
+# Candidate Target Path Key Comparison
 # -----------------------------------------------------------------------------
 
 class SourceNode(object):
@@ -223,6 +228,7 @@ class SourceNode(object):
     def matches_candidate(self, candidate_node, tnode):
         return self.m.match(self.split_terms, candidate_node.wtarget, tnode)
 
+
 class Path(object):
     ''' Repesents a path, which is an ordered list of node objects. '''
 
@@ -243,6 +249,7 @@ class Path(object):
         self.nodes.append(node)
         return self
 
+
 class CandidateNode(object):
     ''' Repesents a node in the candidate path. '''
 
@@ -252,6 +259,7 @@ class CandidateNode(object):
 
     def __repr__(self):
         return self.wtarget
+
 
 class KeyPathGenerator(object):
     ''' Candidate Target Path Key Generator '''
@@ -270,25 +278,25 @@ class KeyPathGenerator(object):
             self._key_candidate_path(candidate_path)
 
     def _key_source_path(self, source_path):
-        ''' Returns a keyed source path for the given source path. ''' 
-        for i,a in enumerate(source_path):
+        ''' Returns a keyed source path for the given source path. '''
+        for i, a in enumerate(source_path):
             if i == 0:
                 if a.key is None:
                     a.key = unichr(self.node_key_counter)
-                    self.node_key_counter+=1
-            for j,b in enumerate(source_path[i+1:]):
+                    self.node_key_counter += 1
+            for j, b in enumerate(source_path[i + 1:]):
                 if a == b:
                     b.key = a.key
                     break
                 else:
                     if b.key is None:
                         b.key = unichr(self.node_key_counter)
-                        self.node_key_counter+=1
+                        self.node_key_counter += 1
 
     def source_key_path(self):
         ''' Returns the source key path. '''
         path = [n.key for n in self.source_path]
-        return ''.join(path) if len(path)>1 else path[0]
+        return ''.join(path) if len(path) > 1 else path[0]
 
     def matched_candidate_key_paths(self):
         ''' Returns a tuple containing a list of candidate key paths and their
@@ -297,7 +305,7 @@ class KeyPathGenerator(object):
         matched_paths = []
         for candidate_path in self.matched_candidate_paths:
             path = [n.key for n in candidate_path]
-            path = ''.join(path) if len(path)>1 else path[0]
+            path = ''.join(path) if len(path) > 1 else path[0]
             keyed_paths.append(path)
             matched_paths.append(candidate_path)
         return (keyed_paths, matched_paths)
@@ -319,7 +327,7 @@ class KeyPathGenerator(object):
                     return True
 
     def _key_candidate_path(self, candidate_path):
-        ''' Returns a keyed candidate path for the given candidate path. ''' 
+        ''' Returns a keyed candidate path for the given candidate path. '''
         matchFound = False
 
         for a in self.source_path:
@@ -331,7 +339,8 @@ class KeyPathGenerator(object):
         for b in candidate_path:
             if b.key is None:
                 b.key = unichr(self.node_key_counter)
-                self.node_key_counter+=1
+                self.node_key_counter += 1
+
 
 class KeyPathRanker(object):
     ''' Candidate Target Key Path Ranker '''
@@ -341,7 +350,5 @@ class KeyPathRanker(object):
         p = len(set(tgt) - set(src))
         a = normalized_damerau_levenshtein_distance(unicode(src), unicode(tgt)) + p
         b = max(len(src), len(tgt)) + p
-        candidateScore = 1 - (a/b)
+        candidateScore = 1 - (a / b)
         return candidateScore
-
-
