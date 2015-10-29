@@ -4,68 +4,41 @@ import itertools, re, Levenshtein
 from pyxdameraulevenshtein import normalized_damerau_levenshtein_distance
 from nltk.corpus import wordnet as wn
 
-#
-# Python implementation of SCHEMA - An Algorithm for Automated Product Taxonomy
-# Mapping in E-commerce.
-#
-# Ref: http://disi.unitn.it/~p2p/RelatedWork/Matching/Aanen_eswc_2012.pdf
-#
-# Copyright 2015 David Ng <david@theopenlabel.com>, <nudgeee@gmail.com>
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-""" A Python implementation of SCHEMA - An Algorithm for Automated Product
-    Taxonomy Mapping in E-commerce.
-
-    Based on the Semantic Category Hierarchy for E-commerce Mapping Algorithm
-    (SCHEMA) proposed by Aanen, et al.
-    Ref: http://disi.unitn.it/~p2p/RelatedWork/Matching/Aanen_eswc_2012.pdf
-
-    Author: David Ng <david@theopenlabel.com>, <nudgeee@gmail.com>
+''' Rewrites of the major algorithms from the white paper '''
 
 
-    Required modules:
+def check_if_list_contains_a_semantic_match_for_target_word(target_word, list_of_words):
+    if not target_word or not list_of_words:
+        return False
 
-      * nltk with wordnet download (see http://www.nltk.org/data.html)
-      * Levenshtein
-      * pyxdameraulevenshtein
+    target_word_components = _split_composite(target_word)
+    product = itertools.product(list_of_words, target_word_components)
 
+    for (word, target_word_component) in product:
+        if these_words_are_similar(word, target_word_component):
+            return True
 
-    Example usage:
-
-    import schema
-
-    # create source and candidate paths
-    source_path     =  schema.Path().add_node(..)
-    candidate_paths = [schema.Path().add_node(..), ..]
-
-    # generate key paths and match
-    keypathgen = schema.KeyPathGenerator(source_path, candidate_paths)
-    source_key_path                  = keypathgen.source_key_path()
-    matched_key_paths, matched_paths = keypathgen.matched_candidate_key_paths()
-
-    # rank and print results
-    ranker = schema.KeyPathRanker()
-    for i,candidate_key_path in enumerate(matched_key_paths):
-        rank = ranker.rank(source_key_path, candidate_key_path)
-        print rank, matched_paths[i]
-
-    """
+    return False
 
 
-# -----------------------------------------------------------------------------
-# Utility functions
-# -----------------------------------------------------------------------------
+def these_words_are_similar(word_a, word_b):
+    if not word_b or not word_b:
+        return False
+
+    min_percent_of_similarities = 0.8
+
+    number_of_character_differences = Levenshtein.distance(word_a, word_b)
+
+    length_of_longest_word = max(len(word_a), len(word_b))
+
+    percentage_of_differences = number_of_character_differences / length_of_longest_word
+
+    percentage_of_similarities = 1 - percentage_of_differences
+
+    return percentage_of_similarities >= min_percent_of_similarities
+
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 def _split_composite(w):
     ''' Splits composite category name w into a set of individual classes:
@@ -101,10 +74,6 @@ def _contains_as_separate_component(wa, wb):
         return True
     return False
 
-
-# -----------------------------------------------------------------------------
-# Find Source Category's Extended Split Term Set
-# -----------------------------------------------------------------------------
 
 class ExtendedSplitTermSet(object):
     ''' Generates a split term set for the given category, using parent
@@ -171,9 +140,6 @@ class ExtendedSplitTermSet(object):
         return S.definition()
 
 
-# -----------------------------------------------------------------------------
-# Semantic Match
-# -----------------------------------------------------------------------------
 
 class SemanticMatcher(object):
     ''' Semantic matcher class. '''
@@ -199,10 +165,6 @@ class SemanticMatcher(object):
                 subSetOf = False
         return subSetOf
 
-
-# -----------------------------------------------------------------------------
-# Candidate Target Path Key Comparison
-# -----------------------------------------------------------------------------
 
 class SourceNode(object):
     ''' Repesents a node in the source path. '''
@@ -278,7 +240,9 @@ class KeyPathGenerator(object):
             self._key_candidate_path(candidate_path)
 
     def _key_source_path(self, source_path):
-        ''' Returns a keyed source path for the given source path. '''
+        """
+        Returns a keyed source path for the given source path.
+        """
         for i, a in enumerate(source_path):
             if i == 0:
                 if a.key is None:
@@ -294,7 +258,7 @@ class KeyPathGenerator(object):
                         self.node_key_counter += 1
 
     def source_key_path(self):
-        ''' Returns the source key path. '''
+        """ Returns the source key path. """
         path = [n.key for n in self.source_path]
         return ''.join(path) if len(path) > 1 else path[0]
 
