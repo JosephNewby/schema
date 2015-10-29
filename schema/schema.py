@@ -11,7 +11,7 @@ def check_if_list_contains_a_semantic_match_for_target_word(target_word, list_of
     if not target_word or not list_of_words:
         return False
 
-    target_word_components = _split_composite(target_word)
+    target_word_components = split_composite_word(target_word)
     product = itertools.product(list_of_words, target_word_components)
 
     for (word, target_word_component) in product:
@@ -31,13 +31,14 @@ def these_words_are_similar(word_a, word_b):
 
     length_of_longest_word = max(len(word_a), len(word_b))
 
-    percentage_of_differences = number_of_character_differences / length_of_longest_word
-
-    percentage_of_similarities = 1 - percentage_of_differences
+    percentage_of_similarities = 1 - number_of_character_differences / length_of_longest_word
 
     return percentage_of_similarities >= min_percent_of_similarities
 
-
+def split_composite_word(word):
+    delimiters = ', | & | and '
+    lowercase_word = word.lower()
+    return re.split(delimiters, lowercase_word)
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 def _split_composite(w):
