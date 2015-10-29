@@ -46,7 +46,34 @@ def find_the_most_accurate_meaning_of_a_category_given_its_context(category, con
     """
     Disambiguation
     """
-    return wn.synsets(category)[0]
+    highest_sense_score = 0
+    synset_with_the_highest_sense_score = None
+
+    for category_synset in wn.synsets(category):
+        sense_score = 0
+        related_synsets = get_related_synsets(category_synset)
+
+        product = itertools.product(related_synsets, context)
+
+        for (related_synset, context_word) in product:
+            gloss = related_synset.definition()
+            sense_score += _longest_common_substring(gloss, context_word)
+
+        if sense_score > highest_sense_score:
+            highest_sense_score = sense_score
+            synset_with_the_highest_sense_score = category_synset
+
+    return synset_with_the_highest_sense_score
+
+
+def get_related_synsets(synset):
+    related_synsets = [synset]
+    related_synsets.extend(synset.hypernyms())
+    related_synsets.extend(synset.hyponyms())
+    related_synsets.extend(synset.part_meronyms())
+    related_synsets.extend(synset.part_holonyms())
+    return related_synsets
+
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
