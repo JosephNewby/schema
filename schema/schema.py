@@ -35,11 +35,21 @@ def these_words_are_similar(word_a, word_b):
 
     return percentage_of_similarities >= min_percent_of_similarities
 
+
 def split_composite_word(word):
     delimiters = ', | & | and '
     lowercase_word = word.lower()
     return re.split(delimiters, lowercase_word)
+
+
+def find_the_most_accurate_meaning_of_a_category_given_its_context(category, context):
+    """
+    Disambiguation
+    """
+    return wn.synsets(category)[0]
+
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
 
 def _split_composite(w):
     ''' Splits composite category name w into a set of individual classes:
@@ -139,7 +149,6 @@ class ExtendedSplitTermSet(object):
     def get_gloss(self, S):
         ''' Returns the gloss associated to a synset S in WordNet. '''
         return S.definition()
-
 
 
 class SemanticMatcher(object):
